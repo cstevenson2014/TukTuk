@@ -11,3 +11,9 @@ Easily aquire music from YouTube in a clean, organized manner. This program down
 - Written in Python 3
 
 ![Screenshot](/2020-4-5.png?raw=true)
+
+## Updates
+
+# v2.1 - April 4, 2020
+- Modified GUI for dark theme, should maintain look accross platforms
+- Changed cover art searches from Bing to CoverMyTunes.com, results are much higher quality
