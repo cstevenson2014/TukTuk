@@ -2,8 +2,6 @@
 ## Purpose:<br>
 Easily aquire music from YouTube in a clean, organized manner. This program downloads the video file, extracts audio, embeds metadata information, embeds album artwork, and then saves the finished file in your output directory.
 
-![Screenshot](/2020-4-5.png?raw=true)
-
 ## Features:
 - Intelligent title/artist extraction from YouTube title
 - Automatically finds album artwork based on artist/album information
@@ -11,3 +9,5 @@ Easily aquire music from YouTube in a clean, organized manner. This program down
 
 ## Requirements:
 - Written in Python 3
+
+![Screenshot](/2020-4-5.png?raw=true)
