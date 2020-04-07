@@ -21,7 +21,7 @@ import pyperclip
 ############################ Global Variables ############################################################################################################################
 ##########################################################################################################################################################################
 
-softwareVersionString = 'v2.1'
+softwareVersionString = 'v2.2'
 
 urlChunk1 = "https://www.bing.com/images/search?q=album+cover+"
 urlChunk2 = "&go=Search&qs=n&qft=filterui%3Aaspect-square"
@@ -258,7 +258,11 @@ def readConfigSettings():
 		with open(pickleFileName, 'wb') as fi:
 			pickle.dump(configList, fi)
 
-	folder_path_output.set(configList["destination"])
+	if "" ==configList["destination"]:
+		print("Config file doesnt have a destination, defaulting to current directory.")
+		folder_path_output.set(os.getcwd())
+	else:
+		folder_path_output.set(configList["destination"])
 
 def downloadYoutubeVideo():
 	print("Downloading youtube video...")
@@ -528,15 +532,16 @@ cluster2y = cluster1y + 100
 
 # Title
 tk.Label(text="Title: ", bg='black', fg='white', anchor=W).place(x = cluster2x, y = cluster2y, width=100, height=25)
-tk.Entry(width=32, textvariable=songTitle, bg='black', fg='white', highlightcolor='cyan', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y, width=150, height=25)
+tk.Entry(width=32, textvariable=songTitle, bg='black', fg='white', insertbackground='white', highlightcolor='cyan', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y, width=150, height=25)
+
 
 # Artist
 tk.Label(text="Artist: ", bg='black', fg='white', anchor=W).place(x = cluster2x, y = cluster2y + spacer, width=100, height=25)
-tk.Entry(width=32, textvariable=songArtist, bg='black', fg='white', highlightcolor='cyan', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y + spacer, width=150, height=25)
+tk.Entry(width=32, textvariable=songArtist, bg='black', fg='white', highlightcolor='cyan', insertbackground='white', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y + spacer, width=150, height=25)
 
 # Album
 tk.Label(text="Album: ", bg='black', fg='white', anchor=W).place(x = cluster2x, y = cluster2y + 2*spacer, width=100, height=25)
-tk.Entry(width=32, textvariable=songAlbum, bg='black', fg='white', highlightcolor='cyan', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y + 2*spacer, width=150, height=25)
+tk.Entry(width=32, textvariable=songAlbum, bg='black', fg='white', insertbackground='white', highlightcolor='cyan', relief=FLAT, highlightthickness=1).place(x = cluster2x + 110, y = cluster2y + 2*spacer, width=150, height=25)
 
 # GUI Cluster 3 - Cover Art Controls
 cluster3x = cluster1x
