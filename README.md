@@ -17,6 +17,9 @@ Easily aquire music from YouTube in a clean, organized manner. This program down
 ![Screenshot](/2020-4-5.png?raw=true)
 
 ## Updates
+### v2.2 - April 6, 2020
+- Made cursors white so you can see them
+- Default directory is current directory, if none set
 
 ### v2.1 - April 4, 2020
 - Modified GUI for dark theme, should maintain look accross platforms
