@@ -1,6 +1,6 @@
 # TukTuk
 ## Purpose
-Easily aquire music from YouTube in a clean, organized manner. This program downloads the video file, extracts audio, embeds metadata information, embeds album artwork, and then saves the finished file in your output directory.
+Download music from YouTube in a clean, organized manner. This program downloads the video, extracts audio, embeds metadata, embeds album artwork, and then saves the finished file to your output directory.
 
 ## Features
 - Intelligent title/artist extraction from YouTube title
@@ -12,6 +12,7 @@ Easily aquire music from YouTube in a clean, organized manner. This program down
 
 ## Installation
 1. Download all files and extract to a folder
+1. Install all dependencies
 1. Run TukTuk.py using Python3
 
 ![Screenshot](/2020-4-5.png?raw=true)
