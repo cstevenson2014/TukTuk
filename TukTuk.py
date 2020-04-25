@@ -21,11 +21,11 @@ import pyperclip
 ############################ Global Variables ############################################################################################################################
 ##########################################################################################################################################################################
 
-softwareVersionString = 'v2.2'
+softwareVersionString = 'v2.3'
 
-urlChunk1 = "https://www.bing.com/images/search?q=album+cover+"
-urlChunk2 = "&go=Search&qs=n&qft=filterui%3Aaspect-square"
-urlCombined = ""
+#urlChunk1 = "https://www.bing.com/images/search?q=album+cover+"
+#urlChunk2 = "&go=Search&qs=n&qft=filterui%3Aaspect-square"
+#urlCombined = ""
 artistNoSpaces = ""
 albumNoSpaces = ""
 artworkURLFiletype = ""
@@ -43,7 +43,7 @@ configList = 	{
 				}
 
 
-symbol = 	{	
+symbol = 	{										# These are the unicode symbols used around the program
 			'alpha':945, 
 			'beta':946, 
 			'gamma': 947, 
@@ -53,13 +53,16 @@ symbol = 	{
 			'warning':'\U000026A0',
 			'checkmark':'\U00002714',
 			'wait':'\U000023F3',
-			'folder':'\U0001F4C2',
-			'left':'\U000021E6',
-			'right':'\U000021E8',
-			'info':'\U0001F6C8'
+			'folder':'\U0001F5C0',		# does not work
+			'left':'\U00002B05',
+			'right':'\U00002B95',
+			'info':'\U0001F6C8',
+			'gear':'\U00002699',
+			'pencil':'\U0001F589',		# does not work
+			'document':'\U0001F5CE'		# does not work
 			}
 
-songParameters = 	{
+songParameters = 	{								# Song paramters grouped as a dictionary, to be used if multi downloads are implemented (threading)
 					'Used':0,
 					'destination':"",
 					'title':"",
@@ -69,7 +72,26 @@ songParameters = 	{
 					'artworkURL':"",
 					'title':"",
 					'title':"",
-}
+					}
+
+listOfTitleCrapToRemove = 	[						# List of common strings to remove from YouTube titles
+							'(lyrics)',
+							'[lyrics]',
+							'(Lyrics)',
+							'[Lyrics]',
+							'(Audio)',
+							'[Audio]',
+							'(audio)',
+							'[audio]',
+							'[Official Video]',
+							'(Official Video)',
+							'[Official Audio]',
+							'(Official Audio)',
+							'(Official Music Video)',
+							'[Official Music Video]',
+							'(Lyric Video)',
+							'[Lyric Video]'
+							]
 
 
 
@@ -82,9 +104,11 @@ songParameters = 	{
 
 def browseOutput():
 	print("The fool wants to choose an output directory...")
+	
 	filename = filedialog.askdirectory()
-	folder_path_output.set(filename)
-	print(filename)
+	if (filename != ''):
+		folder_path_output.set(filename)
+		print(filename)
 
 def saveFile():
 
@@ -219,6 +243,7 @@ def findCoverArtThumbnails(artist: str, album: str):
 		print('found cover art!')
 
 		displayAlbumCoverPreview(0)
+		os.remove('Output.text')
 	except:
 		if j > 1:
 			print('found cover art!')
@@ -330,7 +355,6 @@ def downloadTagSaveOneSong():
 	displayAlbumCoverPreview(-1)
 	programStatus.set(symbol["checkmark"] + " All finished")
 
-	ttk.Label(mainframe, image="").grid(column=2, row=8, rowspan=4, sticky=(W, E, N, S))
 
 	bgThreadIsRunning = 0
 
@@ -425,32 +449,16 @@ def extractTitleArtist(videoTitle: str):
 	except:
 		title = videoTitle
 		artist = videoTitle
-
 	try:
-		title = title.replace("[Official Video]", "")
-		title = title.replace("(Official Video)", "")
-		title = title.replace("[Official Audio]", "")
-		title = title.replace("(Official Audio)", "")
-		title = title.replace("(Official Music Video)", "")
-		title = title.replace("[Official Music Video]", "")
-		title = title.replace("(Lyric Video)", "")
-		title = title.replace("[Lyric Video]", "")
-
+		for i in listOfTitleCrapToRemove:
+			title = title.replace(i, "")
 		title = title.strip()
 	except:
 		pass
 
 	try:
-
-		artist = artist.replace("[Official Video]", "")
-		artist = artist.replace("(Official Video)", "")
-		artist = artist.replace("[Official Audio]", "")
-		artist = artist.replace("(Official Audio)", "")
-		artist = artist.replace("(Official Music Video)", "")
-		artist = artist.replace("[Official Music Video]", "")
-		artist = artist.replace("(Lyric Video)", "")
-		artist = artist.replace("[Lyric Video]", "")
-
+		for i in listOfTitleCrapToRemove:
+			artist = artist.replace(i, "")
 		artist = artist.strip()
 	except:
 		pass
@@ -467,16 +475,40 @@ def startThreadedAlbumSearch(artist: str, album: str):
 	t2 = threading.Thread(target=lambda: findCoverArtThumbnails(artist, album))
 	t2.start()
 
+def openSettingsWindow():
+	print('opening settings window...')
+	settings = Toplevel()
+	settings.title("TukTuk Settings")
+	settings.configure(bg='gray16', width=350, height=60)
+	settings.resizable(False, False)
+
+	global button_s
+
+	# GUI Cluster 1 - Output Folder
+	spacer = 30
+	cluster1x = 10
+	cluster1y = 0
+
+	# Label - Output Folder
+	tk.Label(settings, text="Output Folder: ", bg='gray16', fg='white', justify=LEFT, anchor=W).place(x = cluster1x, y = cluster1y, width=200, height=25)
+	tk.Label(settings, textvariable=folder_path_output, bg='gray16', fg='white', justify=LEFT, anchor=W).place(x = cluster1x, y = cluster1y + spacer, width=200, height=25)
+
+	# Button - Browse for Folder
+	btn1 = tk.Button(settings, text=symbol['gear'], command=browseOutput, fg='white')
+	btn1.config(image=button_s, compound=CENTER)
+	btn1.place(x = cluster1x + 290, y = cluster1y + spacer, width=40, height=25)
+
+
 
 ##########################################################################################################################################################################
 ############################ Code ###################################################################################################################################
 ##########################################################################################################################################################################
 
 
-# Set up TKinter Stuff
+# Set up TKinter GUI Stuff
 root = Tk()
 root.title("TukTuk " + softwareVersionString)
-root.geometry("280x440+30+30")
+root.geometry("280x385")
 root.configure(bg='black')
 root.resizable(False, False)
 
@@ -487,13 +519,13 @@ file_path_current = StringVar()
 file_path_current.set("No File Selected")
 
 # Set up TKinter StringVars
-songTitle = StringVar()
-songArtist = StringVar()
-songAlbum = StringVar()
-programStatus = StringVar()
-youtubeURL = StringVar()
-artIndexString = StringVar()
-artSizeString = StringVar()
+songTitle 		= StringVar()
+songArtist 		= StringVar()
+songAlbum 		= StringVar()
+programStatus 	= StringVar()
+youtubeURL 		= StringVar()
+artIndexString 	= StringVar()
+artSizeString 	= StringVar()
  
 albumCoverImageResult = ""																	#	image file thumbnail (not text)
 artIndexString.set("")
@@ -510,25 +542,21 @@ button_l = PhotoImage(file="btn_260x25_gray.png")
 # GUI Cluster 1 - Output Folder
 spacer = 30
 cluster1x = 10
-cluster1y = 0
+cluster1y = 10
 
-# Label - Output Folder
-tk.Label(text="Output Folder: ", bg='black', fg='white', justify=LEFT, anchor=W).place(x = cluster1x, y = cluster1y, width=200, height=25)
-tk.Label(textvariable=folder_path_output, bg='black', fg='white', justify=LEFT, anchor=W).place(x = cluster1x, y = cluster1y + spacer, width=200, height=25)
-
-# Button - Browse for Folder
-btn1 = tk.Button(text='i', command=browseOutput, fg='white')
+# Button - Open Settings Window
+btn1 = tk.Button(text=symbol['gear'], command=openSettingsWindow, fg='white')
 btn1.config(image=button_s, compound=CENTER)
-btn1.place(x = cluster1x + 220, y = cluster1y + spacer, width=40, height=25)
+btn1.place(x = cluster1x + 220, y = cluster1y, width=40, height=25)
 
 # Button - Paste Video
 btn2 = tk.Button(text="Paste YouTube Link", command=pasteYouTubeLink, fg='white')
 btn2.config(image=button_l, compound=CENTER)
-btn2.place(x = 10, y = cluster1y + 2*spacer, width=260, height=25)
+btn2.place(x = 10, y = cluster1y, width=210, height=25)
 
 # GUI Cluster 2 - Song Metadata Fields
 cluster2x = cluster1x
-cluster2y = cluster1y + 100
+cluster2y = cluster1y + 40
 
 # Title
 tk.Label(text="Title: ", bg='black', fg='white', anchor=W).place(x = cluster2x, y = cluster2y, width=100, height=25)
