@@ -15,9 +15,13 @@ Download music from YouTube in a clean, organized manner. This program downloads
 1. Install all dependencies
 1. Run TukTuk.py using Python3
 
-![Screenshot](/2020-4-5.png?raw=true)
+![Screenshot](/2020-4-25.png?raw=true)
 
 ## Updates
+### v2.3 - April 25, 2020
+- Moved settings to popup window
+- Bug fixes
+
 ### v2.2 - April 6, 2020
 - Made cursors white so you can see them
 - Default directory is current directory, if none set
