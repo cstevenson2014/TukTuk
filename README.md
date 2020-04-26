@@ -11,7 +11,7 @@ Download music from YouTube in a clean, organized manner. This program downloads
 - Written in Python 3
 
 ## Installation
-1. Download all files and extract to a folder
+1. Download "Installation Files"
 1. Install all dependencies
 1. Run TukTuk.py using Python3
 
