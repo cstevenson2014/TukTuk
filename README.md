@@ -18,6 +18,9 @@ Download music from YouTube in a clean, organized manner. This program downloads
 ![Screenshot](/Screenshots/2020-4-25.png?raw=true)
 
 ## Updates
+### v2.4 - April 26, 2020
+- Added support for downloading playlists
+
 ### v2.3 - April 25, 2020
 - Moved settings to popup window
 - Bug fixes
