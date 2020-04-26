@@ -6,13 +6,17 @@ from PIL import ImageTk, Image
 import eyed3
 import pickle
 import os
+import time
 import requests
 from bs4 import BeautifulSoup as bs
 from pytube import YouTube
+from pytube import Playlist
 from moviepy.editor import *
 from io import BytesIO
 import threading
 import pyperclip
+from random import randint
+
 
 
 
@@ -21,11 +25,8 @@ import pyperclip
 ############################ Global Variables ############################################################################################################################
 ##########################################################################################################################################################################
 
-softwareVersionString = 'v2.3'
+softwareVersionString = 'v2.4'
 
-#urlChunk1 = "https://www.bing.com/images/search?q=album+cover+"
-#urlChunk2 = "&go=Search&qs=n&qft=filterui%3Aaspect-square"
-#urlCombined = ""
 artistNoSpaces = ""
 albumNoSpaces = ""
 artworkURLFiletype = ""
@@ -34,8 +35,14 @@ coversList=[]
 coversListIndex = 0
 
 bgThreadIsRunning = 0
+playlistDownloadActive = 0
+playlistDownloadIndex = 0
+
+flagEndPlaylistDownloads = 0
+#flagSkipPlaylistDownload = 0
 
 listOfCoverLinks = []
+listOfPlaylistLinks = []
 
 pickleFileName = 'config.pk'
 configList = 	{	
@@ -53,13 +60,13 @@ symbol = 	{										# These are the unicode symbols used around the program
 			'warning':'\U000026A0',
 			'checkmark':'\U00002714',
 			'wait':'\U000023F3',
-			'folder':'\U0001F5C0',		# does not work
+			'folder':'\U0001F5C0',					# does not work
 			'left':'\U00002B05',
 			'right':'\U00002B95',
 			'info':'\U0001F6C8',
 			'gear':'\U00002699',
-			'pencil':'\U0001F589',		# does not work
-			'document':'\U0001F5CE'		# does not work
+			'pencil':'\U0001F589',					# does not work
+			'document':'\U0001F5CE'					# does not work
 			}
 
 songParameters = 	{								# Song paramters grouped as a dictionary, to be used if multi downloads are implemented (threading)
@@ -94,13 +101,36 @@ listOfTitleCrapToRemove = 	[						# List of common strings to remove from YouTub
 							]
 
 
+class song:
+
+	def __init__(self, title, artist, album, videoURL):
+		self.title = title
+		self.artist = artist
+		self.album = album
+		self.videoURL = videoURL
+		self.artFile = 'temp' + str(randomInt(8)) + '.jpg'
+		self.videoFile = 'temp' + str(randomInt(8)) + '.mp4'
+		self.audioFile = 'temp' + str(randomInt(8)) + '.mp3'
+		self.artURL = ''
+		self.playlist = 0
+	
+
+
+
+
+
+
+
 
 ##########################################################################################################################################################################
 ############################ Functions ###################################################################################################################################
 ##########################################################################################################################################################################
 
 
-
+def randomInt(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
 
 def browseOutput():
 	print("The fool wants to choose an output directory...")
@@ -110,9 +140,9 @@ def browseOutput():
 		folder_path_output.set(filename)
 		print(filename)
 
-def saveFile():
+def saveFile(songObject: song):
 
-	global artworkURL
+	#global artworkURL
 
 	if folder_path_output.get() == "":
 		print("No destination directory set, cannot proceed")
@@ -120,39 +150,21 @@ def saveFile():
 		return
 
 	print("saving the metadata to the file...")
-	print("filename path: ", file_path_current.get())
-	print("song title: ", songTitle.get())
-	print("song artist: ", songArtist.get())
-	print("song album: ", songAlbum.get())
-	print("artwork URL: ", artworkURL)
+	print("filename path: ", songObject.audioFile)
+	print("song title: ", songObject.title)
+	print("song artist: ", songObject.artist)
+	print("song album: ", songObject.album)
 
-	audiofile = eyed3.load(file_path_current.get())
-	audiofile.tag.artist = songArtist.get()
-	audiofile.tag.album = songAlbum.get()
-	audiofile.tag.title = songTitle.get()
+	audiofile = eyed3.load(songObject.audioFile)
+	audiofile.tag.artist = songObject.artist
+	audiofile.tag.album = songObject.album
+	audiofile.tag.title = songObject.title
 
-	if os.path.exists("cover.jpg"):																# If an old cover art image exists, delete it
-		print("Previous cover art detected, deleting")
-		os.remove("cover.jpg")
+	if downloadCoverArt(songObject) != 0:
+		print("Failed to download cover art")
 
-	if artworkURL != "":																# If user has specified a new album cover art, proceed through stripping out all old art and embedding the new art
-		artworkURLFiletype = artworkURL[-4:]											# grab last 4 characters from URL, which should be the image format (.jpg, .png, etc.)
-		print("artwork file type detected as:", artworkURLFiletype)
-		print("program will save as .jpg regardless, because I'm lazy")							# This program forces image to be jpg because the eyeD3 module requires you to specify the image type in the function call. 
-
-		with open('cover.jpg', 'wb') as handle:													# download the cover art image and store it in a predictable file
-			response = requests.get(artworkURL, stream=True)
-
-			if not response.ok:
-				print(response)
-
-			for block in response.iter_content(1024):
-				if not block:
-					break
-
-				handle.write(block)
-
-		imagedata = open("cover.jpg","rb").read()												# read image into memory
+	if songObject.artURL != '':
+		imagedata = open(songObject.artFile,"rb").read()										# read image into memory
 
 		try:																					# remove all embedded artwork from the file
 			listOfImageDescriptions = [y.description for y in audiofile.tag.images]				# get a list of all image descriptions in an id3 tag
@@ -163,19 +175,20 @@ def saveFile():
 			
 		except:
 			print("Error deleting previous art. desctiptions: ", listOfImageDescriptions)
+	
 
 		audiofile.tag.images.set(3,imagedata,"image/jpeg",u"Cover Art")							# insert our cover art as front cover, with description "Cover Art"
 
-		os.remove("cover.jpg")																	# delete the cover art file
+		os.remove(songObject.artFile)															# delete the cover art file
 
 
 
 
 	audiofile.tag.save()																		# save the new tag information
 
-	formattedFileName = songArtist.get() + ' - ' + songTitle.get() + '.mp3'
+	formattedFileName = songObject.artist + ' - ' + songObject.title + '.mp3'
 
-	os.rename('audio.mp3', formattedFileName)
+	os.rename(songObject.audioFile, formattedFileName)
 
 
 	safelyMoveFile(formattedFileName, folder_path_output.get())
@@ -184,13 +197,28 @@ def saveFile():
 	print("##### Save success #####")
 	writeConfigSettings()
 
-	file_path_current.set("")
-	songArtist.set("")
-	songTitle.set("")
-	songAlbum.set("")
-	artworkURL = ""
+	
 
 	programStatus.set(symbol["checkmark"] + " File saved, ready for the next one, Cap'n!")
+
+def downloadCoverArt(songObject: song):
+
+	if songObject.artURL != '':
+		try:
+			with open(songObject.artFile, 'wb') as handle:													# download the cover art image and store it in a predictable file
+				response = requests.get(songObject.artURL, stream=True)
+
+				if not response.ok:
+					print(response)
+					return 1
+
+				for block in response.iter_content(1024):
+					if not block:
+						break
+
+					handle.write(block)
+		except: return 99
+	else: return 0
 
 def findCoverArtThumbnails(artist: str, album: str):
 	global coversListIndex
@@ -289,74 +317,74 @@ def readConfigSettings():
 	else:
 		folder_path_output.set(configList["destination"])
 
-def downloadYoutubeVideo():
+def downloadYoutubeVideo(songObject: song):
 	print("Downloading youtube video...")
 	programStatus.set(symbol['wait'] + " Downloading YouTube video...")
-	yt = YouTube(youtubeURL.get())
-	
+	try:
+		yt = YouTube(songObject.videoURL)
+	except:
+		return 2
 	print('Video URL aquired')
-	stream = yt.streams.get_by_itag('140')							#	<Stream: itag="140" mime_type="audio/mp4" abr="128kbps" acodec="mp4a.40.2" progressive="False" type="audio">
-	print('Correct audio mp4 stream aquired')
-	if os.path.exists("audio.mp4"):																# If an old audio download exists, delete it
-		print("Previous audio.mp4 file detected, deleting")
-		os.remove("audio.mp4")
-	stream.download(filename='audio')
-	print("Audio downloaded.")
+	try:
+		stream = yt.streams.get_by_itag('140')							#	<Stream: itag="140" mime_type="audio/mp4" abr="128kbps" acodec="mp4a.40.2" progressive="False" type="audio">
+		print('Correct audio mp4 stream aquired')
+		stream.download(filename=songObject.videoFile[:-4])
+		print("Audio downloaded to: ", songObject.videoFile)
+	except:
+		return 3
+
+	if convertMp4ToMp3(songObject.videoFile, songObject.audioFile) != 0:
+		print('Error converting mp4 to mp3.')
+		programStatus.set(symbol['alarm'] + " Error converting mp4 to mp3")
+		return 1
+
 	
-	newFileName = convertMp4ToMp3('audio.mp4')
-	#print('Moving downloaded audio to source directory')
-	#safelyMoveFile(newFileName, folder_path_source.get())
 
-	youtubeURL.set('')
+	return 0
 
-	return newFileName
-
-def convertMp4ToMp3(filePath: str):
+def convertMp4ToMp3(inputFile: str, outputFile: str):
 	print('converting mp4 file to an mp3')
 	programStatus.set(symbol['wait'] + " Extracting audio from video...")
-	#root.update_idletasks
-	clip = AudioFileClip(filePath, fps = 44100)
-	clip.write_audiofile(filePath[0:-1] + '3')													# trim the trailing 4 off the filename and replace it with a 3 :)
+
+	clip = AudioFileClip(inputFile, fps = 44100)
+	clip.write_audiofile(outputFile)									
 											
+	os.remove(inputFile)																			# delete the mp4 file
+	return 0
 
-	os.remove(filePath)																			# delete the mp4 file
-	return filePath[0:-1] + '3'
+def downloadTagSaveOneSong(songObject: song):
 
-def downloadTagSaveOneSong():
+	global btn7
+	global bgThreadIsRunning
 	
 	bgThreadIsRunning = 1
+	btn7["state"] = "disabled"
 
-	programStatus.set(symbol['wait'] + " Processing...")
+	if downloadYoutubeVideo(songObject) != 0:
+		print("error downloading youtube video")
+		programStatus.set(symbol['alarm'] + " Error downloading YouTube video")
 
-	if youtubeURL.get() == '':
-		programStatus.set(symbol["warning"] + " Paste a YouTube URL to download")
-		return
-	if folder_path_output.get() == '':
-		programStatus.set(symbol["warning"] + " Select an Output Directory to proceed")
-		return
-	if songTitle.get() == '':
-		programStatus.set(symbol["warning"] + " Enter a Track Name to proceed")
-		return
-	if songArtist.get() == '':
-		programStatus.set(symbol["warning"] + " Enter an Artist to proceed")
-		return
-	if songAlbum.get() == '':
-		programStatus.set(symbol["warning"] + " Enter an Album to proceed")
-		return
+
+	programStatus.set(symbol['wait'] + " Saving song metadata...")
+	
+	saveFile(songObject)
+
 
 	
-	#root.update_idletasks
 
-	audiofileName = downloadYoutubeVideo()
-	file_path_current.set(audiofileName)
-	programStatus.set(symbol['wait'] + " Saving song metadata...")
-	#root.update_idletasks
-	saveFile()
-	displayAlbumCoverPreview(-1)
-	programStatus.set(symbol["checkmark"] + " All finished")
+	if (songObject.playlist == 1):
+		songTitle.set("")
+		songArtist.set("")
+		youtubeURL.set('')
+	else:
+		clearGUI
+	
+	if songObject.playlist == 0:	programStatus.set(symbol["checkmark"] + " All finished")
+	else:							programStatus.set(symbol["wait"] + " Loading next...")
 
 
 	bgThreadIsRunning = 0
+	btn7["state"] = "active"
 
 def displayAlbumCoverPreview(index: int):
 
@@ -431,11 +459,35 @@ def useThisAlbumCover():
 	songAlbumArtURL.set(coversList[coversListIndex])
 
 def pasteYouTubeLink():
-	youtubeURL.set(pyperclip.paste())
+
+	global listOfPlaylistLinks
+	global playlistDownloadActive
+
+
+	link = pyperclip.paste()
+	youtubeURL.set(link)
+	print('Pasted link: ', link )
 	try:
-		yt = YouTube(youtubeURL.get())
-		songTitle.set(extractTitleArtist(yt.title)[0])
-		songArtist.set(extractTitleArtist(yt.title)[1])
+		if ( 'youtube' in link ):
+			if ('&list' in link):
+				print("Uh oh, playlist detected")
+				try:
+					listOfPlaylistLinks = Playlist(link)
+					print("You're about to download a playlist. ", len(listOfPlaylistLinks), " videos detected.", )
+					displayMessageBox("You're about to download a playlist of videos. Album information and cover art will be retained in case it's the same for each song.")
+					tempString = "Fetched playlist with " + str(len(listOfPlaylistLinks)) + " videos"
+					programStatus.set("Fetched playlist with " + str(len(listOfPlaylistLinks)) + " videos")
+
+					t3 = threading.Thread(target=lambda: managePlaylistDownload())
+					t3.start()
+
+				except:
+					programStatus.set(symbol["warning"] + " Failed to fetch playlist videos!")
+					return
+			else:
+				yt = YouTube(youtubeURL.get())
+				songTitle.set(extractTitleArtist(yt.title)[0])
+				songArtist.set(extractTitleArtist(yt.title)[1])
 	except:
 		songTitle.set(yt.title)
 
@@ -466,8 +518,35 @@ def extractTitleArtist(videoTitle: str):
 	return [title, artist]
 
 def startThreadedDownload():
-	print("Starting threaded download")
-	t1 = threading.Thread(target=lambda: downloadTagSaveOneSong())
+
+	print("verifying all needed data is present to create song instance")
+
+	programStatus.set(symbol['wait'] + " Processing...")
+
+	if youtubeURL.get() == '':
+		programStatus.set(symbol["warning"] + " Paste a YouTube URL to download")
+		return
+	if folder_path_output.get() == '':
+		programStatus.set(symbol["warning"] + " Select an Output Directory to proceed")
+		return
+	if songTitle.get() == '':
+		programStatus.set(symbol["warning"] + " Enter a Track Name to proceed")
+		return
+	if songArtist.get() == '':
+		programStatus.set(symbol["warning"] + " Enter an Artist to proceed")
+		return
+	if songAlbum.get() == '':
+		programStatus.set(symbol["warning"] + " Enter an Album to proceed")
+		return
+
+	songObject = song(songTitle.get(), songArtist.get(), songAlbum.get(), youtubeURL.get())
+
+	if artworkURL != '':	songObject.artURL = artworkURL
+	if playlistDownloadActive == 1:	songObject.playlist = 1
+
+	print("Starting threaded download.")
+	
+	t1 = threading.Thread(target=lambda: downloadTagSaveOneSong(songObject))
 	t1.start()
 
 def startThreadedAlbumSearch(artist: str, album: str):
@@ -484,7 +563,6 @@ def openSettingsWindow():
 
 	global button_s
 
-	# GUI Cluster 1 - Output Folder
 	spacer = 30
 	cluster1x = 10
 	cluster1y = 0
@@ -498,10 +576,112 @@ def openSettingsWindow():
 	btn1.config(image=button_s, compound=CENTER)
 	btn1.place(x = cluster1x + 290, y = cluster1y + spacer, width=40, height=25)
 
+def displayMessageBox(message: str):
+	print('opening message window...')
+	messageBox = Toplevel()
+	messageBox.configure(bg='gray16', padx=20, pady=20)
+	messageBox.resizable(False, False)
+
+	global button_m
+
+	tk.Label(messageBox, text=message, bg='gray16', fg='white', wraplength=200, justify=CENTER).pack()
+	btn1 = tk.Button(messageBox, text='Dismiss', command=lambda: messageBox.destroy(), fg='white')
+	btn1.config(image=button_m, compound=CENTER, width=45, height=25)
+	btn1.pack()
+
+def managePlaylistDownload():
+
+	global listOfPlaylistLinks
+	global playlistDownloadActive
+	global bgThreadIsRunning
+	global btn2
+	global cluster1y
+	global cluster1x
+	global button_m
+	global playlistDownloadIndex
+	global flagEndPlaylistDownloads
+
+
+	i = 1
+	playlistDownloadIndex = 0
+	playlistDownloadActive = 1
+
+	print('Playlist download started...')
+
+	btn2.place_forget()
+
+	btn21 = tk.Button(text="Cancel All", command=cancelPlaylistDownloads, fg='white')
+	btn21.config(image=button_m, compound=CENTER)
+	btn21.place(x = cluster1x, y = cluster1y, width=100, height=25)
+
+	btn22 = tk.Button(text="Skip Song", command=skipCurrentPlaylistDownload, fg='white')
+	btn22.config(image=button_m, compound=CENTER)
+	btn22.place(x = cluster1x + 110, y = cluster1y, width=100, height=25)
+
+	for link in listOfPlaylistLinks:
+		proceedButton.set("Review then download video " + str(i))
+		programStatus.set(symbol["wait"] + " Loading next...")
+		print('### Download video ' + str(i) + ' ###')
+		print('Link: ' + link)
+		youtubeURL.set(link)
+		yt = YouTube(link)
+		songTitle.set(extractTitleArtist(yt.title)[0])
+		songArtist.set(extractTitleArtist(yt.title)[1])
+
+		programStatus.set("Confirm information, then downlaod")
+
+		while (bgThreadIsRunning == 0):									# wait for user to start to download video
+			time.sleep(1)
+			if (flagEndPlaylistDownloads == 1): break
+			if playlistDownloadIndex != (i - 1): break
+		while (bgThreadIsRunning == 1):									# wait video to download completely
+			time.sleep(1)
+			if (flagEndPlaylistDownloads == 1): break
+			if playlistDownloadIndex != (i - 1): break
+
+		if playlistDownloadIndex == (i - 1):	playlistDownloadIndex = playlistDownloadIndex + 1
+		i = i + 1
+
+		if (flagEndPlaylistDownloads == 1): break
+
+	playlistDownloadActive = 0
+	btn21.place_forget()
+	btn22.place_forget()
+	btn2.place(x = 10, y = cluster1y, width=210, height=25)
+	programStatus.set("Paste a YouTube link to get started")									#	inital prompt for user
+	proceedButton.set('Proceed')
+	listOfPlaylistLinks = []
+	playlistDownloadActive = 0
+	flagEndPlaylistDownloads = 0
+	clearGUI
+
+
+
+	
+
+def cancelPlaylistDownloads():
+	global flagEndPlaylistDownloads
+	flagEndPlaylistDownloads = 1
+
+
+def skipCurrentPlaylistDownload():
+	global playlistDownloadIndex
+	playlistDownloadIndex = playlistDownloadIndex + 1
+
+def clearGUI():
+	songTitle.set("")
+	songArtist.set("")
+	youtubeURL.set('')
+	songAlbum.set("")
+	artworkURL = ""
+	displayAlbumCoverPreview(-1)
+
+
+
 
 
 ##########################################################################################################################################################################
-############################ Code ###################################################################################################################################
+############################ GUI ####################################################################################################################################
 ##########################################################################################################################################################################
 
 
@@ -515,8 +695,7 @@ root.resizable(False, False)
 # Initialize default values
 folder_path_output = StringVar()
 folder_path_output.set("")
-file_path_current = StringVar()
-file_path_current.set("No File Selected")
+
 
 # Set up TKinter StringVars
 songTitle 		= StringVar()
@@ -526,11 +705,13 @@ programStatus 	= StringVar()
 youtubeURL 		= StringVar()
 artIndexString 	= StringVar()
 artSizeString 	= StringVar()
+proceedButton	= StringVar()
  
 albumCoverImageResult = ""																	#	image file thumbnail (not text)
 artIndexString.set("")
 artSizeString.set("")
 programStatus.set("Paste a YouTube link to get started")									#	inital prompt for user
+proceedButton.set('Proceed')
 
 readConfigSettings()																		#	import configuration data
 
@@ -552,7 +733,7 @@ btn1.place(x = cluster1x + 220, y = cluster1y, width=40, height=25)
 # Button - Paste Video
 btn2 = tk.Button(text="Paste YouTube Link", command=pasteYouTubeLink, fg='white')
 btn2.config(image=button_l, compound=CENTER)
-btn2.place(x = 10, y = cluster1y, width=210, height=25)
+btn2.place(x = cluster1x, y = cluster1y, width=210, height=25)
 
 # GUI Cluster 2 - Song Metadata Fields
 cluster2x = cluster1x
@@ -607,7 +788,7 @@ cluster4y = cluster3y + 170
 tk.Label(textvariable=programStatus, bg='black', fg='white').place(x = cluster4x, y = cluster4y, width=260, height=25)
 
 # Button - Proceed
-btn7 = tk.Button(text="Proceed", command=startThreadedDownload, fg='white')
+btn7 = tk.Button(textvariable=proceedButton, command=startThreadedDownload, fg='white')
 btn7.config(image=button_l, compound=CENTER)
 btn7.place(x = cluster4x, y = cluster4y + spacer, width=260, height=25)
 
