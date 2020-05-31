@@ -15,10 +15,10 @@ I've provided source code, as well as a standalone macOS application.
 ### Source Code
 1. Download the "Source Code" folder
 1. cd into the folder and run the following commands
-'''
+```
 npm install
 npm start
-'''
+```
 
 ![Screenshot](/Screenshots/2020-5-31.png?raw=true)
 
