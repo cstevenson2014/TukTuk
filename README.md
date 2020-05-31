@@ -5,19 +5,27 @@ Download music from YouTube in a clean, organized manner. This program downloads
 ## Features
 - Intelligent title/artist extraction from YouTube title
 - Automatically finds album artwork based on artist/album information
-- GUI
-
-## Requirements
-- Written in Python 3
+- Works with both YouTube videos and playlists
 
 ## Installation
-1. Download "Installation Files"
-1. Install all dependencies
-1. Run TukTuk.py using Python3
+I've provided source code, as well as a standalone macOS application.
+### macOS
+1. Download application from ![here]("https://www.icloud.com/iclouddrive/0qzPyGAKNvV9hGYfhsoK6cN1A#TukTuk")
+2. Run
+### Source Code
+1. Download the "Source Code" folder
+1. cd into the folder and run the following commands
+'''
+npm install
+npm start
+'''
 
-![Screenshot](/Screenshots/2020-4-25.png?raw=true)
+![Screenshot](/Screenshots/2020-5-31.png?raw=true)
 
 ## Updates
+### v3.1 - May 31, 2020
+- Recreated program from scratch using Electron/NodeJS
+
 ### v2.4 - April 26, 2020
 - Added support for downloading playlists
 
