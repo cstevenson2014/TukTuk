@@ -10,7 +10,7 @@ Download music from YouTube in a clean, organized manner. This program downloads
 ## Installation
 I've provided source code, as well as a standalone macOS application.
 ### macOS
-1. Download application from ![here]("https://www.icloud.com/iclouddrive/0qzPyGAKNvV9hGYfhsoK6cN1A#TukTuk")
+1. Download application from [here](https://www.icloud.com/iclouddrive/0qzPyGAKNvV9hGYfhsoK6cN1A#TukTuk)
 2. Run
 ### Source Code
 1. Download the "Source Code" folder
