@@ -1,0 +1,37 @@
+{
+  "name": "test1",
+  "productName": "TukTuk",
+  "version": "3.1.0",
+  "description": "sandbox test program",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "TukTuk"
+  ],
+  "author": "CLS",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^9.0.0",
+    "electron-packager": "^14.2.1"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "browser-id3-writer": "^4.4.0",
+    "del": "^5.1.0",
+    "download": "^8.0.0",
+    "download-file": "^0.1.5",
+    "electron-store": "^5.1.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "g-i-s": "^2.1.5",
+    "path": "^0.12.7",
+    "remote": "^0.2.6",
+    "request": "^2.88.2",
+    "temp": "^0.9.1",
+    "tempy": "^0.5.0",
+    "trash": "^6.1.1",
+    "ytdl-core": "^2.1.4",
+    "ytpl": "^0.1.21"
+  }
+}

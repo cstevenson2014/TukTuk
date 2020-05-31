@@ -1,0 +1,116 @@
+body {
+  background-color: black;
+  color: white;
+  font-family: "helvetica";
+  width: 210px;
+}
+
+
+input {
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 8px;
+    padding: 5px 5px;
+    margin: 5px 5px;
+    width: 200px
+  }
+
+input[type=text] {
+    text-align: left;
+    width: 190px
+  }
+
+input[type=button] {
+    text-align: center;
+
+}
+
+
+
+
+.coverArtNavigationContainer {
+  float: left;
+  width: 100px;
+  text-align: center;
+}
+
+.coverArtImage {
+  float: right;
+  width: 100px;
+  height: 110px;
+  margin: 5px 5px 5px 5px;
+}
+
+input[class="coverNavigation"] {
+    text-align: center;
+    width: 35px;
+    margin: 5px;
+    height: 28px;
+
+}
+
+
+  
+  
+input[class="outputFolder"] {
+    text-align: center;
+    width: 35px;
+    padding: 5px 5px;
+    margin: 5px 5px;
+}
+
+input[class="pasteLink"] {
+    text-align: center;
+    width: 150px;
+    padding: 5px 5px;
+    margin: 5px 5px;
+}
+
+
+.downloadQueueContainer {
+  overflow: scroll;
+  width: 200px;
+  height: 150px;
+  margin: 5px;
+  border: 1px solid white;
+  border-radius: 13px;
+}
+
+
+.pendingDownload {
+  font-size: 10px;
+  overflow: hidden;
+  height: 40px;
+  width: 190px;
+  background: rgb(40, 40, 40);
+  border-radius: 8px;
+  margin: 5px;
+
+}
+
+.downloadQueueImage {
+  width: 40px;
+  height: 40px;
+  float: left;
+}
+
+.pendingDownloadProgress {
+  float: right;
+  margin: 5px;
+  width: 140px;
+}
+
+input:active {
+  background-color: rgb(40, 40, 40);
+  outline: none;
+}
+
+input[type="button"]:focus {
+  outline: none;
+}
+
+input[type="text"]:focus {
+  background-color: rgb(40, 40, 40);
+  outline: none;
+}

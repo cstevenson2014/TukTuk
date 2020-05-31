@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <title>TukTuk</title>
+    <script src="main.js"></script>
+    <script src="dialog.js"></script>
+    <script src="paste.js"></script>
+    <script src="coverArt.js"></script>
+    <script src="proceed.js"></script>
+    <script src="queue.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <input type="button" id="btnPaste" value="Paste YouTube Link" class="pasteLink"  onclick="pasteVideoLink()" />
+    <input type="button" id="btnOutput" value="&#x2699;" class="outputFolder" title="Open Settings" onclick="chooseOutputFolder()" />
+    <br>
+    <input class="form-input" type="text" id="textInputTitle" placeholder="Title">
+    <br>
+    <input class="form-input" type="text" id="textInputArtist" placeholder="Artist">
+    <br>
+    <input class="form-input" type="text" id="textInputAlbum" placeholder="Album">
+    <br>
+    <div class="coverArtNavigationContainer">
+      <input type="button" id="btnSearch" value="O" title="Search for album art"  class="coverNavigation" onclick="searchArt()" />
+      <input type="button" id="btnClear" value="X" title="Clear all downloaded art"  class="coverNavigation" onclick="clearCover()" />
+      <br>
+      <input type="button" id="btnPrev" value="<" title="View previous cover" class="coverNavigation"  onclick="displayPrevCover()" />
+      <input type="button" id="btnNext" value=">"  title="View next cover" class="coverNavigation" onclick="displayNextCover()" />
+      <br>
+      <span id='coverArtIndex'></span>
+    </div>
+
+    <div class="coverArtImage">
+      <img id='coverArt' src="Assets/default.jpg" width="100" height="100">
+    </div>
+
+    <input type="button" id="btnProceed" value="Proceed" title="Download & tag the song" onclick="proceedWithOneSong()" />
+    <br>
+    <div class="downloadQueueContainer" id="downloadQueueContainer">
+
+    </div>
+  </body>
+</html>
+
+
+
